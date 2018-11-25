@@ -49,7 +49,7 @@ void tim2_isr(void) {
 		timer_clear_flag(TIM2, TIM_SR_CC2IF);
 		channel_ppm[channel] = timer_get_counter(TIM2);
 		timer_set_counter(TIM2, 0);
-		if (channel_ppm[channel] > 8000 || channel >= 7) {
+		if (channel_ppm[channel] > 0x2000 || channel >= 6) {
 			channel = 0;
 		} else {
 			channel++;
