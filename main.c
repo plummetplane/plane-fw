@@ -2,6 +2,7 @@
 #include <libopencm3/stm32/rcc.h>
 
 #include "ppm-decode/ppm-readval.h"
+#include "servo-control/pwm.h"
 
 static void clock_setup(void) {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
@@ -16,6 +17,7 @@ int main(void) {
 	clock_setup();
 	gpio_setup();
 	ppm_readval_init();
+	pwm_init();
 
 	gpio_set(GPIOC, GPIO13);
 
@@ -24,8 +26,9 @@ int main(void) {
 	/* blink the onboard led to indicate it is working */
 	while(1) {
 		gpio_toggle(GPIOC, GPIO13);
-		for (i = 0; i < 7200000; i++)
+		for (i = 0; i < 720000; i++)
 			__asm__("nop");
+		pwm_set_duty_cycle(channel_ppm[2]);
 	}
 	return 0;
 }

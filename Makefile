@@ -39,7 +39,8 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
 # target objects
 OBJ = main.o \
-      ppm-decode/ppm-readval.o
+      ppm-decode/ppm-readval.o \
+      servo-control/pwm.o
 
 #rules
 all: main.elf
