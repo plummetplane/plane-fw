@@ -24,7 +24,7 @@ CFLAGS += -fno-common
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wextra -Wshadow -Wno-unused-variable -Wimplicit-function-declaration
 CFLAGS += -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes
-CFLAGS += -Iinclude
+CFLAGS += -Iinclude -I../libopencm3/include/
 
 # linker flags
 LDFLAGS += $(OPT) $(DEBUG)
@@ -34,7 +34,7 @@ LDFLAGS += --static
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,--print-gc-sections
 
-LDLIBS += -l$(OPENCM3_LIB)
+LDLIBS += -l$(OPENCM3_LIB) -L../libopencm3/lib/
 LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
 # target objects
