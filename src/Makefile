@@ -32,7 +32,7 @@ LDFLAGS += -T$(LDSCRIPT) -nostartfiles
 LDFLAGS += $(ARCH_FLAGS)
 LDFLAGS += --static
 LDFLAGS += -Wl,--gc-sections
-LDFLAGS += -Wl,--print-gc-sections
+#LDFLAGS += -Wl,--print-gc-sections
 
 LDLIBS += -l$(OPENCM3_LIB) -L../libopencm3/lib/
 LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
@@ -40,7 +40,8 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 # target objects
 OBJ = main.o \
       ppm-decode/ppm-readval.o \
-      drivers/pwm/pwm.o
+      drivers/pwm/pwm.o \
+      drivers/serial/usart.o
 
 #rules
 all: main.elf

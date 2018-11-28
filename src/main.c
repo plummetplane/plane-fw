@@ -3,6 +3,7 @@
 
 #include "ppm-decode/ppm-readval.h"
 #include "drivers/pwm/pwm.h"
+#include "drivers/serial/usart.h"
 
 static void clock_setup(void) {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
@@ -24,6 +25,7 @@ int main(void) {
 	gpio_setup();
 	pwm_setup();
 	ppm_readval_init();
+	usart_init(USART1, 115200);
 
 	gpio_set(GPIOC, GPIO13);
 
@@ -35,6 +37,7 @@ int main(void) {
 		for (i = 0; i < 720000; i++)
 			__asm__("nop");
 		pwm_set_duty(TIM3, TIM_OC1, channel_ppm[2]);
+		usart_drv_str_write(USART1, "it works!");
 	}
 	return 0;
 }
