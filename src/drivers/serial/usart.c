@@ -9,6 +9,8 @@
 
 uint8_t recv_byte = '\0';
 
+void (*callback[3])(uint8_t) = {0};
+
 int usart_setup(uint32_t usart, uint32_t baud) {
 	uint32_t rcc_usart, nvic_usart_irq, rcc_gpio_bank_usart, gpio_bank_usart;
 	uint16_t gpio_usart_rx, gpio_usart_tx;
@@ -76,22 +78,31 @@ int usart_setup(uint32_t usart, uint32_t baud) {
 void usart1_isr(void) {
 	if (((USART_CR1(USART1) & USART_CR1_RXNEIE) != 0) && ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
 		recv_byte = usart_drv_recv(USART1);
+		if (callback[0] != 0) {
+			callback[0](recv_byte);
+		}
 	}
 }
 
 void usart2_isr(void) {
 	if (((USART_CR1(USART2) & USART_CR1_RXNEIE) != 0) && ((USART_SR(USART2) & USART_SR_RXNE) != 0)) {
 		recv_byte = usart_drv_recv(USART2);
+		if (callback[1] != 0) {
+			callback[1](recv_byte);
+		}
 	}
 }
 
 void usart3_isr(void) {
 	if (((USART_CR1(USART3) & USART_CR1_RXNEIE) != 0) && ((USART_SR(USART3) & USART_SR_RXNE) != 0)) {
 		recv_byte = usart_drv_recv(USART3);
+		if (callback[1] != 0) {
+			callback[1](recv_byte);
+		}
 	}
 }
 
-void usart_drv_str_write(uint32_t usart, char *data) {
+void usart_drv_str_write(uint32_t usart, uint8_t *data) {
 	/* usart write string */
 	uint32_t pos = 0;
 	while (data[pos] != '\0') {
@@ -104,8 +115,26 @@ void usart_drv_write(uint32_t usart, uint8_t data) {
 	usart_send_blocking(usart, data);
 }
 
-char usart_drv_recv(uint32_t usart) {
+uint8_t usart_drv_recv(uint32_t usart) {
 	return usart_recv(usart);
+}
+
+int usart_set_callback(uint32_t usart, void *callback_func) {
+	switch (usart) {
+		case USART1:
+			callback[0] = callback_func;
+			break;
+		case USART2:
+			callback[1] = callback_func;
+			break;
+		case USART3:
+			callback[2] = callback_func;
+			break;
+		default:
+			return -1;
+			break;
+	}
+	return 0;
 }
 
 int usart_init(uint32_t usart, uint32_t baud) {
