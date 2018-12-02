@@ -3,6 +3,7 @@
 
 #include "ppm-decode/ppm-readval.h"
 #include "drivers/pwm/pwm.h"
+#include "drivers/serial/i2c.h"
 #include "drivers/serial/usart.h"
 
 void usart_callback(uint8_t data);
@@ -37,6 +38,8 @@ int main(void) {
 	pwm_setup();
 	ppm_readval_init();
 	usart_setup();
+
+	i2c_init();
 
 	gpio_set(GPIOC, GPIO13);
 
