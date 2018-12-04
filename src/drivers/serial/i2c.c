@@ -8,29 +8,49 @@
 
 #include "i2c.h"
 
-volatile uint8_t i2c1_data[I2C_BUF_SIZE] = {0};
-volatile uint16_t i2c1_pos = 0xffff;
+volatile uint8_t i2c1_data[I2C_BUF_SIZE] = {0}, i2c2_data[I2C_BUF_SIZE] = {0};
+volatile uint16_t i2c1_pos = 0xffff, i2c2_pos = 0xffff;
 
-void i2c_setup(void) {
+void (*i2c1_callback)(uint8_t *buf, uint32_t buf_size) = 0,
+     (*i2c2_callback)(uint8_t *buf, uint32_t buf_size) = 0;
+
+int i2c_setup(uint32_t i2c, uint8_t address) {
+	uint32_t rcc_i2c, nvic_i2c_ev_irq, rcc_gpio_port, gpio_scl, gpio_sda;
+	switch (i2c) {
+		case I2C1:
+			rcc_i2c = RCC_I2C1;
+			nvic_i2c_ev_irq = NVIC_I2C1_EV_IRQ;
+			gpio_scl = GPIO_I2C1_SCL;
+			gpio_sda = GPIO_I2C1_SDA;
+			break;
+//		case I2C2:
+//			rcc_i2c = RCC_I2C2;
+//			nvic_i2c_ev_irq = NVIC_I2C2_EV_IRQ;
+//			gpio_scl = GPIO_I2C2_SCL;
+//			gpio_sda = GPIO_I2C2_SDA;
+//			break;
+		default:
+			return -1;
+			break;
+	}
+
 	/* enable clocks */
-	rcc_periph_clock_enable(RCC_I2C1);
+	rcc_periph_clock_enable(rcc_i2c);
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_AFIO);
 
 	/* setup gpio */
-	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN, GPIO_I2C1_SCL | GPIO_I2C1_SDA);
-
-	nvic_enable_irq(NVIC_I2C1_EV_IRQ);
+	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN, gpio_scl | gpio_sda);
 
 	/* reset i2c */
-	i2c_reset(I2C1);
+	i2c_reset(i2c);
 
 	/* disable i2c before configuration */
-	i2c_peripheral_disable(I2C1);
+	i2c_peripheral_disable(i2c);
 
 	/* set clock -- TODO: verify */
 	//i2c_set_clock_frequency(I2C1, I2C_CR2_FREQ_36MHZ);
-	i2c_set_speed(I2C1, i2c_speed_sm_100k, I2C_CR2_FREQ_36MHZ);
+	i2c_set_speed(i2c, i2c_speed_sm_100k, I2C_CR2_FREQ_36MHZ);
 
 	/* 400KHz - I2C Fast Mode */
 	// i2c_set_fast_mode(I2C1);
@@ -48,17 +68,25 @@ void i2c_setup(void) {
 	 */
 	//i2c_set_trise(I2C1, 0x24);
 
-	/* set slave address, to be able to address this device */
-	i2c_set_own_7bit_slave_address(I2C1, 0x27);
+	if (address != 0x00) {
+		nvic_enable_irq(nvic_i2c_ev_irq);
 
-	/* enable interrupt */
-	i2c_enable_interrupt(I2C1, I2C_CR2_ITEVTEN | I2C_CR2_ITBUFEN);
+		/* set slave address, to be able to address this device */
+		i2c_set_own_7bit_slave_address(i2c, address);
+
+		/* enable interrupt */
+		i2c_enable_interrupt(i2c, I2C_CR2_ITEVTEN | I2C_CR2_ITBUFEN);
+	}
 
 	/* enable the interface */
-	i2c_peripheral_enable(I2C1);
+	i2c_peripheral_enable(i2c);
 
-	/* enable sending acknowledgement packets */
-	i2c_enable_ack(I2C1);
+	if (address != 0x00) {
+		/* enable sending ACK */
+		i2c_enable_ack(I2C1);
+	}
+
+	return 0;
 }
 
 void i2c1_ev_isr(void) {
@@ -111,13 +139,45 @@ void i2c1_ev_isr(void) {
 			i2c_send_data(I2C1, 0xff);
 		}
 	} else if (I2C_SR1(I2C1) & I2C_SR1_STOPF) {
-		/* callback */
 		i2c_peripheral_enable(I2C1);
+
+		/*
+		 * callback is triggered after both, reading and writing
+		 * also after receiving address for reading (just before reading)
+		 */
+		if (i2c1_callback != 0) {
+			i2c1_callback(i2c1_data, I2C_BUF_SIZE);
+		}
 	} else if (I2C_SR1(I2C1) & I2C_SR1_AF) {
 		I2C_SR1(I2C1) &= ~I2C_SR1_AF;
 	}
 }
 
-int i2c_init(void) {
-	i2c_setup();
+void i2c_set_callback(uint32_t i2c, void (*callback)(uint8_t *buf, uint32_t buf_size)) {
+	void (**i2c_callback)(uint8_t *buf, uint32_t buf_size) = 0;
+	switch (i2c) {
+		case I2C1:
+			i2c_callback = &i2c1_callback;
+			break;
+//		case I2C2:
+//			i2c_callback = &i2c2_callback;
+//			bbreak;
+		default:
+			return;
+			break;
+	}
+
+	*i2c_callback = callback;
+}
+
+/* only 7-bit address range for now */
+int i2c_init_slave(uint32_t i2c, uint8_t address)  {
+	if (address < 0x07 || address > 0x78)
+		return -1;
+	return i2c_setup(i2c, address);
+}
+
+/* initialize i2c interface without assigning salve address */
+int i2c_init_master(uint32_t i2c) {
+	return i2c_setup(i2c, 0x00);
 }
