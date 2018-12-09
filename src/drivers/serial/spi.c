@@ -40,6 +40,19 @@ void spi_setup(void) {
 	spi_enable(SPI1);
 }
 
+void spi_select(void) {
+	gpio_clear(GPIOA, GPIO4);
+}
+
+void spi_deselect(void) {
+	gpio_set(GPIOA, GPIO4);
+}
+
+void spi_release(void) {
+	spi_deselect();
+	spi_drv_read(SPI1);
+}
+
 uint16_t spi_drv_read(uint32_t spi) {
 	return spi_read(spi);
 }
