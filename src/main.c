@@ -17,9 +17,9 @@ static void gpio_setup(void) {
 }
 
 static void pwm_setup(void) {
-	pwm_tim_setup(TIM3, 72, 20000);
-	pwm_pin_setup(TIM3, TIM_OC1);
-	pwm_set_duty(TIM3, TIM_OC1, 1500);
+	pwm_tim_setup(TIM4, 72, 20000);
+	pwm_pin_setup(TIM4, TIM_OC4);
+	pwm_set_duty(TIM4, TIM_OC4, 1500);
 }
 
 static void usart_setup(void) {
@@ -47,7 +47,7 @@ int main(void) {
 		gpio_toggle(GPIOC, GPIO13);
 		for (i = 0; i < 720000; i++)
 			__asm__("nop");
-		pwm_set_duty(TIM3, TIM_OC1, channel_ppm[2]);
+		pwm_set_duty(TIM4, TIM_OC4, channel_ppm[2]);
 		//usart_drv_str_write(USART1, "it works!");
 	}
 	return 0;
