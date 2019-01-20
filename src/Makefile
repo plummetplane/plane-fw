@@ -28,13 +28,13 @@ CFLAGS += -Iinclude -I../libopencm3/include/
 
 # linker flags
 LDFLAGS += $(OPT) $(DEBUG)
-LDFLAGS += -T$(LDSCRIPT) -nostartfiles
+LDFLAGS += -L../libopencm3/lib/ -T$(LDSCRIPT) -nostartfiles
 LDFLAGS += $(ARCH_FLAGS)
 LDFLAGS += --static
 LDFLAGS += -Wl,--gc-sections
 #LDFLAGS += -Wl,--print-gc-sections
 
-LDLIBS += -l$(OPENCM3_LIB) -L../libopencm3/lib/
+LDLIBS += -L../libopencm3/lib/stm32/f1/ -l$(OPENCM3_LIB)
 LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
 # target objects
