@@ -73,11 +73,6 @@
 #define NRF24L01_REG_STATUS_RX_P_NO 0x01
 #define NRF24L01_REG_STATUS_TX_FULL 0x00
 
-typedef struct {
-	uint8_t size;
-	uint8_t reg_size[];
-} nrf24l01_regs;
-
 uint32_t spi;
 uint32_t en_gpioport;
 uint16_t en_gpios;
@@ -88,63 +83,60 @@ void (*maxrt_callback)(void) = 0;
 /*
  * Registers
  */
-const nrf24l01_regs nrf24l01_reg_def = {
-	.size = 30,
-	.reg_size =
-	{
-		/*
-		 * CONFIG
-		 * 0 PRIM_RX
-		 * 1 PWR_UP
-		 * 2 CRCO
-		 * 3 EN_CRC
-		 * 4 MASK_MAX_RT
-		 * 5 MASK_TX_DS
-		 * 6 MASK_RX_DR
-		 * 7 RESERVED
-		 */
-		1,
-		/*
-		 * EN_AA
-		 * 0 ENAA_P0
-		 * 1 ENAA_P1
-		 * 2 ENAA_P2
-		 * 3 ENAA_P3
-		 * 4 ENAA_P4
-		 * 5 ENAA_P5
-		 * 7:6 RESERVED
-		 */
-		1,
-		1,	/* EN_RXADDR */
-		1,	/* SETUP_AW */
-		1,	/* SETUP_RETR */
-		1,	/* RF_CH */
-		1,	/* RF_SETUP */
-		1,	/* STATUS */
-		1,	/* OBSERVE_TX */
-		1,	/* CD */
-		5,	/* RX_ADDR_P0 */
-		5,	/* RX_ADDR_P1 */
-		5,	/* RX_ADDR_P2 */
-		5,	/* RX_ADDR_P3 */
-		5,	/* RX_ADDR_P4 */
-		5,	/* RX_ADDR_P5 */
-		5,	/* RX_ADDR_P6 */
-		5,	/* TX_ADDR */
-		1,	/* RX_PW_P0 */
-		1,	/* RX_PW_P1 */
-		1,	/* RX_PW_P2 */
-		1,	/* RX_PW_P3 */
-		1,	/* RX_PW_P4 */
-		1,	/* RX_PW_P5 */
-		1,	/* FIFO_STATUS */
-		0,	/* NA */
-		0,	/* NA */
-		0,	/* NA */
-		0,	/* NA */
-		1,	/* DYNDP */
-		1,	/* FEATURE */
-	}
+const uint8_t reg_size[] =
+{
+	/*
+	 * CONFIG
+	 * 0 PRIM_RX
+	 * 1 PWR_UP
+	 * 2 CRCO
+	 * 3 EN_CRC
+	 * 4 MASK_MAX_RT
+	 * 5 MASK_TX_DS
+	 * 6 MASK_RX_DR
+	 * 7 RESERVED
+	 */
+	1,
+	/*
+	 * EN_AA
+	 * 0 ENAA_P0
+	 * 1 ENAA_P1
+	 * 2 ENAA_P2
+	 * 3 ENAA_P3
+	 * 4 ENAA_P4
+	 * 5 ENAA_P5
+	 * 7:6 RESERVED
+	 */
+	1,
+	1,	/* EN_RXADDR */
+	1,	/* SETUP_AW */
+	1,	/* SETUP_RETR */
+	1,	/* RF_CH */
+	1,	/* RF_SETUP */
+	1,	/* STATUS */
+	1,	/* OBSERVE_TX */
+	1,	/* CD */
+	5,	/* RX_ADDR_P0 */
+	5,	/* RX_ADDR_P1 */
+	5,	/* RX_ADDR_P2 */
+	5,	/* RX_ADDR_P3 */
+	5,	/* RX_ADDR_P4 */
+	5,	/* RX_ADDR_P5 */
+	5,	/* RX_ADDR_P6 */
+	5,	/* TX_ADDR */
+	1,	/* RX_PW_P0 */
+	1,	/* RX_PW_P1 */
+	1,	/* RX_PW_P2 */
+	1,	/* RX_PW_P3 */
+	1,	/* RX_PW_P4 */
+	1,	/* RX_PW_P5 */
+	1,	/* FIFO_STATUS */
+	0,	/* NA */
+	0,	/* NA */
+	0,	/* NA */
+	0,	/* NA */
+	1,	/* DYNDP */
+	1,	/* FEATURE */
 };
 
 void nrf24l01_read_reg(uint8_t reg, uint8_t *buf);
@@ -174,6 +166,7 @@ void nrf24l01_init(uint32_t spi_dev, uint32_t gpioport, uint16_t gpios, uint8_t 
 }
 
 /*
+
  * Reading/writing registers
  */
 void nrf24l01_read_reg(uint8_t reg, uint8_t *buf) {
@@ -181,7 +174,7 @@ void nrf24l01_read_reg(uint8_t reg, uint8_t *buf) {
 
 	spi_drv_xfer(spi, (NRF24L01_CMD_R_REGISTER | reg));
 
-	for (uint8_t i = 0; i < nrf24l01_reg_def.reg_size[reg]; i++) {
+	for (uint8_t i = 0; i < reg_size[reg]; i++) {
 		buf[i] = spi_drv_xfer(spi, NRF24L01_CMD_NOP);
 	}
 
@@ -193,7 +186,7 @@ void nrf24l01_write_reg(uint8_t reg, uint8_t *buf) {
 
 	spi_drv_xfer(spi, (NRF24L01_CMD_W_REGISTER | reg));
 
-	for (uint8_t i = 0; i < nrf24l01_reg_def.reg_size[reg]; i++) {
+	for (uint8_t i = 0; i < reg_size[reg]; i++) {
 		spi_drv_xfer(spi, buf[i]);
 	}
 
