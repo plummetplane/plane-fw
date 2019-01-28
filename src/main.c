@@ -29,7 +29,7 @@ static void usart_setup(void) {
 }
 
 static void spi_setup(void) {
-	spi_init();
+	spi_init(0, SPI_CR1_BAUDRATE_FPCLK_DIV_256, SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE, SPI_CR1_CPHA_CLK_TRANSITION_1, SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
 }
 
 void usart_callback(uint8_t data) {
