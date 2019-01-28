@@ -41,6 +41,7 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 OBJ = main.o \
       ppm-decode/ppm-readval.o \
       drivers/pwm/pwm.o \
+      drivers/serial/spi.o \
       drivers/serial/usart.o
 
 #rules

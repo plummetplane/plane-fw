@@ -3,6 +3,7 @@
 
 #include "ppm-decode/ppm-readval.h"
 #include "drivers/pwm/pwm.h"
+#include "drivers/serial/spi.h"
 #include "drivers/serial/usart.h"
 
 void usart_callback(uint8_t data);
@@ -27,6 +28,10 @@ static void usart_setup(void) {
 	usart_set_callback(USART1, &usart_callback);
 }
 
+static void spi_setup(void) {
+	spi_init(0, SPI_CR1_BAUDRATE_FPCLK_DIV_256, SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE, SPI_CR1_CPHA_CLK_TRANSITION_1, SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
+}
+
 void usart_callback(uint8_t data) {
 	usart_drv_write(USART1, data);
 }
@@ -37,6 +42,7 @@ int main(void) {
 	pwm_setup();
 	ppm_readval_init();
 	usart_setup();
+	spi_setup();
 
 	gpio_set(GPIOC, GPIO13);
 
