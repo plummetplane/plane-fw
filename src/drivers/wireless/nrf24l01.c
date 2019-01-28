@@ -1,5 +1,8 @@
 #include <stdint.h>
 
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/rcc.h>
+
 #include "../serial/spi.h"
 #include "nrf24l01.h"
 
@@ -76,6 +79,8 @@ typedef struct {
 } nrf24l01_regs;
 
 uint32_t spi;
+uint32_t en_gpioport;
+uint16_t en_gpios;
 void (*rxdr_callback)(nrf24l01_payload payload) = 0;
 void (*txds_callback)(void) = 0;
 void (*maxrt_callback)(void) = 0;
@@ -152,17 +157,20 @@ uint8_t nrf24l01_read_status(uint8_t field);
 
 void nrf24l01_clear_status(uint8_t field);
 
-void nrf24l01_init(uint32_t spi_dev) {
+void nrf24l01_init(uint32_t spi_dev, uint32_t gpioport, uint16_t gpios, uint8_t mode) {
 	spi_init();
 
 	spi = spi_dev;
+	en_gpioport = gpioport;
+	en_gpios = gpios;
 
-	/*
-	spi_select();
-	spi_drv_read(spi);
+	rcc_periph_clock_enable(en_gpioport);
 
-	spi_deselect();
-	*/
+	gpio_set_mode(en_gpioport, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, en_gpios);
+
+	nrf24l01_mode(mode);
+
+	nrf24l01_enable_power();
 }
 
 /*
@@ -225,6 +233,12 @@ void nrf24l01_disable_power(void) {
 
 void nrf24l01_mode(uint8_t mode) {
 	nrf24l01_config(NRF24L01_REG_CONFIG_PRIM_RX, mode);
+
+	if (mode == NRF24L01_MODE_RX) {
+		gpio_set(en_gpioport, en_gpios);
+	} else {
+		gpio_clear(en_gpioport, en_gpios);
+	}
 }
 
 /*
@@ -248,7 +262,7 @@ void nrf24l01_clear_status(uint8_t field) {
 /*
  * Send/Receive data
  */
-int nrf24l01_send(nrf24l01_payload *payload) {
+int nrf24l01_transmit(nrf24l01_payload *payload) {
 	if (nrf24l01_read_status(NRF24L01_REG_STATUS_TX_FULL) == 1) {
 		spi_select();
 		spi_drv_xfer(spi, NRF24L01_CMD_FLUSH_TX);
@@ -264,6 +278,12 @@ int nrf24l01_send(nrf24l01_payload *payload) {
 	}
 
 	spi_deselect();
+
+	/* create >10us pulse on EN pin */
+	gpio_set(en_gpioport, en_gpios);
+	for (uint16_t i = 720; i > 0; i--)
+		__asm("nop");
+	gpio_clear(en_gpioport, en_gpios);
 
 	return 0;
 }

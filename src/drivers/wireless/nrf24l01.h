@@ -13,8 +13,11 @@ typedef struct {
 
 /*
  * Initialize SPI bus and configure the device
+ * spi - SPI bus the device is connected to
+ * gpioport. gpios - EN PIN connection
+ * mode - rx/tx
  */
-void nrf24l01_init(uint32_t spi);
+void nrf24l01_init(uint32_t spi, uint32_t gpioport, uint16_t gpios, uint8_t mode);
 
 /*
  * Enable CRC
@@ -43,9 +46,9 @@ void nrf24l01_disable_power(void);
 void nrf24l01_mode(uint8_t mode);
 
 /*
- * Send/receive data
+ * Transmit/receive data
  */
-int nrf24l01_send(nrf24l01_payload *payload);
+int nrf24l01_transmit(nrf24l01_payload *payload);
 int nrf24l01_receive(nrf24l01_payload *payload);
 
 /*
