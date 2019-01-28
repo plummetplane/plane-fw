@@ -42,8 +42,8 @@ void spi_setup(uint8_t spi, uint32_t br, uint32_t cpol, uint32_t cpha, uint32_t 
 	rcc_periph_clock_enable(spi_gpios[spi].rcc_gpioport);
 	rcc_periph_clock_enable(RCC_AFIO);
 
-	gpio_set_mode(spi_gpios[spi].gpioport, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, spi_gpios[spi].miso | spi_gpios[spi].mosi);
-	gpio_set_mode(spi_gpios[spi].gpioport, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, spi_gpios[spi].sck);
+	gpio_set_mode(spi_gpios[spi].gpioport, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, spi_gpios[spi].sck | spi_gpios[spi].mosi);
+	gpio_set_mode(spi_gpios[spi].gpioport, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, spi_gpios[spi].miso);
 	gpio_set_mode(spi_gpios[spi].gpioport, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, spi_gpios[spi].nss);
 
 	/* SPI clock */
