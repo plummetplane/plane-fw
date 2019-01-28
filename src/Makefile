@@ -42,7 +42,8 @@ OBJ = main.o \
       ppm-decode/ppm-readval.o \
       drivers/pwm/pwm.o \
       drivers/serial/spi.o \
-      drivers/serial/usart.o
+      drivers/serial/usart.o \
+      drivers/wireless/nrf24l01.o
 
 #rules
 all: main.elf
