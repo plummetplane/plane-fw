@@ -17,7 +17,7 @@ typedef struct {
  * gpioport. gpios - EN PIN connection
  * mode - rx/tx
  */
-void nrf24l01_init(uint32_t spi, uint32_t gpioport, uint16_t gpios, uint8_t mode);
+void nrf24l01_init(uint8_t spi, uint32_t gpioport, uint16_t gpios, uint8_t mode);
 
 /*
  * Enable CRC

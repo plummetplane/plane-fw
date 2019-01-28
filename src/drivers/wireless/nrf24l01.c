@@ -73,7 +73,7 @@
 #define NRF24L01_REG_STATUS_RX_P_NO 0x01
 #define NRF24L01_REG_STATUS_TX_FULL 0x00
 
-uint32_t spi;
+uint8_t spi;
 uint32_t en_gpioport;
 uint16_t en_gpios;
 void (*rxdr_callback)(nrf24l01_payload payload) = 0;
@@ -149,8 +149,9 @@ uint8_t nrf24l01_read_status(uint8_t field);
 
 void nrf24l01_clear_status(uint8_t field);
 
-void nrf24l01_init(uint32_t spi_dev, uint32_t gpioport, uint16_t gpios, uint8_t mode) {
-	spi_init();
+void nrf24l01_init(uint8_t spi_dev, uint32_t gpioport, uint16_t gpios, uint8_t mode) {
+	spi_init(spi_dev, SPI_CR1_BAUDRATE_FPCLK_DIV_256, SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE, SPI_CR1_CPHA_CLK_TRANSITION_2,
+			SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
 
 	spi = spi_dev;
 	en_gpioport = gpioport;
@@ -170,7 +171,7 @@ void nrf24l01_init(uint32_t spi_dev, uint32_t gpioport, uint16_t gpios, uint8_t 
  * Reading/writing registers
  */
 void nrf24l01_read_reg(uint8_t reg, uint8_t *buf) {
-	spi_select();
+	spi_select(spi);
 
 	spi_drv_xfer(spi, (NRF24L01_CMD_R_REGISTER | reg));
 
@@ -178,11 +179,11 @@ void nrf24l01_read_reg(uint8_t reg, uint8_t *buf) {
 		buf[i] = spi_drv_xfer(spi, NRF24L01_CMD_NOP);
 	}
 
-	spi_deselect();
+	spi_deselect(spi);
 }
 
 void nrf24l01_write_reg(uint8_t reg, uint8_t *buf) {
-	spi_select();
+	spi_select(spi);
 
 	spi_drv_xfer(spi, (NRF24L01_CMD_W_REGISTER | reg));
 
@@ -190,7 +191,7 @@ void nrf24l01_write_reg(uint8_t reg, uint8_t *buf) {
 		spi_drv_xfer(spi, buf[i]);
 	}
 
-	spi_deselect();
+	spi_deselect(spi);
 
 }
 
@@ -257,12 +258,12 @@ void nrf24l01_clear_status(uint8_t field) {
  */
 int nrf24l01_transmit(nrf24l01_payload *payload) {
 	if (nrf24l01_read_status(NRF24L01_REG_STATUS_TX_FULL) == 1) {
-		spi_select();
+		spi_select(spi);
 		spi_drv_xfer(spi, NRF24L01_CMD_FLUSH_TX);
-		spi_deselect();
+		spi_deselect(spi);
 	}
 
-	spi_select();
+	spi_select(spi);
 
 	spi_drv_xfer(spi, NRF24L01_CMD_W_TX_PAYLOAD);
 
@@ -270,7 +271,7 @@ int nrf24l01_transmit(nrf24l01_payload *payload) {
 		spi_drv_xfer(spi, payload->data[i]);
 	}
 
-	spi_deselect();
+	spi_deselect(spi);
 
 	/* create >10us pulse on EN pin */
 	gpio_set(en_gpioport, en_gpios);
@@ -288,7 +289,7 @@ int nrf24l01_receive(nrf24l01_payload *payload) {
 	nrf24l01_read_reg(NRF24L01_REG_RX_PW_P0, &rx_pw);
 
 	/* read received bytes */
-	spi_select();
+	spi_select(spi);
 
 	spi_drv_xfer(spi, NRF24L01_CMD_R_RX_PAYLOAD);
 
@@ -298,7 +299,7 @@ int nrf24l01_receive(nrf24l01_payload *payload) {
 
 	payload->size = rx_pw;
 
-	spi_deselect();
+	spi_deselect(spi);
 
 	return 0;
 }
@@ -332,9 +333,9 @@ void nrf24l01_irq(void) {
 			nrf24l01_receive(&rxdata);
 			rxdr_callback(rxdata);
 		} else {
-			spi_select();
+			spi_select(spi);
 			spi_drv_xfer(spi, NRF24L01_CMD_FLUSH_RX);
-			spi_deselect();
+			spi_deselect(spi);
 		}
 
 		nrf24l01_clear_status(NRF24L01_REG_STATUS_RX_DR);
