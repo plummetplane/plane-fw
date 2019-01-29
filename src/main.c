@@ -33,8 +33,8 @@ static void usart_setup(void) {
 }
 
 static void i2c_setup(void) {
-	i2c_init_slave(I2C1, 0x27);
-	i2c_set_callback(I2C1, &i2c_callback);
+	i2c_init_slave(0, 0x27);
+	i2c_set_callback(0, &i2c_callback);
 }
 
 static void nrf24l01_setup(void) {
