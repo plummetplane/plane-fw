@@ -4,7 +4,9 @@
 #include "ppm-decode/ppm-readval.h"
 #include "drivers/pwm/pwm.h"
 #include "drivers/serial/i2c.h"
+#include "drivers/serial/spi.h"
 #include "drivers/serial/usart.h"
+#include "drivers/wireless/nrf24l01.h"
 
 void usart_callback(uint8_t data);
 
@@ -20,9 +22,9 @@ static void gpio_setup(void) {
 }
 
 static void pwm_setup(void) {
-	pwm_tim_setup(TIM3, 72, 20000);
-	pwm_pin_setup(TIM3, TIM_OC1);
-	pwm_set_duty(TIM3, TIM_OC1, 1500);
+	pwm_tim_setup(TIM4, 72, 20000);
+	pwm_pin_setup(TIM4, TIM_OC4);
+	pwm_set_duty(TIM4, TIM_OC4, 1500);
 }
 
 static void usart_setup(void) {
@@ -33,6 +35,10 @@ static void usart_setup(void) {
 static void i2c_setup(void) {
 	i2c_init_slave(I2C1, 0x27);
 	i2c_set_callback(I2C1, &i2c_callback);
+}
+
+static void nrf24l01_setup(void) {
+	nrf24l01_init(0, GPIOB, GPIO0, NRF24L01_MODE_TX);
 }
 
 void usart_callback(uint8_t data) {
@@ -52,6 +58,7 @@ int main(void) {
 	ppm_readval_init();
 	usart_setup();
 	i2c_setup();
+	nrf24l01_setup();
 
 	gpio_set(GPIOC, GPIO13);
 
@@ -62,7 +69,7 @@ int main(void) {
 		gpio_toggle(GPIOC, GPIO13);
 		for (i = 0; i < 720000; i++)
 			__asm__("nop");
-		pwm_set_duty(TIM3, TIM_OC1, channel_ppm[2]);
+		pwm_set_duty(TIM4, TIM_OC4, channel_ppm[2]);
 		//usart_drv_str_write(USART1, "it works!");
 	}
 	return 0;
