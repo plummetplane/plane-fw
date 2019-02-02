@@ -44,6 +44,7 @@ OBJ = main.o \
       drivers/serial/i2c.o \
       drivers/serial/spi.o \
       drivers/serial/usart.o \
+      drivers/display/ssd1306.o \
       drivers/wireless/nrf24l01.o
 
 #rules

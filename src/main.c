@@ -7,6 +7,7 @@
 #include "drivers/serial/spi.h"
 #include "drivers/serial/usart.h"
 #include "drivers/wireless/nrf24l01.h"
+#include "drivers/display/ssd1306.h"
 
 void usart_callback(uint8_t data);
 
@@ -59,6 +60,8 @@ int main(void) {
 	usart_setup();
 	i2c_setup();
 	nrf24l01_setup();
+
+	ssd1306_init(0, 0, 31);
 
 	gpio_set(GPIOC, GPIO13);
 
