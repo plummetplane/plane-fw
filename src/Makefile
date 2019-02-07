@@ -22,7 +22,7 @@ CFLAGS += $(OPT) $(CSTD) $(DEBUG)
 CFLAGS += $(ARCH_FLAGS) $(OPENCM3_DEFS)
 CFLAGS += -fno-common
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -Wextra -Wshadow -Wno-unused-variable -Wimplicit-function-declaration
+CFLAGS += -Wall -Wextra -Wshadow -Wno-unused-variable -Wimplicit-function-declaration
 CFLAGS += -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes
 CFLAGS += -Iinclude -I../libopencm3/include/
 
@@ -40,6 +40,8 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 # target objects
 OBJ = main.o \
       ppm-decode/ppm-readval.o \
+      drivers/misc/bmp280-common.o \
+      drivers/misc/bmp280-i2c.o \
       drivers/pwm/pwm.o \
       drivers/serial/i2c.o \
       drivers/serial/spi.o \

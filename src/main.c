@@ -2,6 +2,7 @@
 #include <libopencm3/stm32/rcc.h>
 
 #include "ppm-decode/ppm-readval.h"
+#include "drivers/misc/bmp280-i2c.h"
 #include "drivers/pwm/pwm.h"
 #include "drivers/serial/i2c.h"
 #include "drivers/serial/spi.h"
@@ -41,6 +42,10 @@ static void nrf24l01_setup(void) {
 	nrf24l01_init(0, GPIOB, GPIO0, NRF24L01_MODE_TX);
 }
 
+static void bmp280_i2c_setup(void) {
+	bmp280_i2c_init(0);
+}
+
 void usart_callback(uint8_t data) {
 	usart_drv_write(USART1, data);
 }
@@ -59,6 +64,7 @@ int main(void) {
 	usart_setup();
 	i2c_setup();
 	nrf24l01_setup();
+	bmp280_i2c_setup();
 
 	gpio_set(GPIOC, GPIO13);
 
