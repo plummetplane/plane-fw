@@ -46,6 +46,13 @@ OBJ = main.o \
       drivers/serial/usart.o \
       drivers/wireless/nrf24l01.o
 
+CONTROLLER_OBJ = controller.o \
+		 ppm-decode/ppm-readval.o \
+		 drivers/serial/i2c.o \
+		 drivers/serial/spi.o \
+		 drivers/serial/usart.o \
+		 drivers/wireless/nrf24l01.o
+
 #rules
 all: main.elf
 
@@ -55,7 +62,10 @@ all: main.elf
 main.elf: $(OBJ)
 	$(LD) $(LDFLAGS) $(OBJ) $(LDLIBS) -o $@
 
+controller.elf: $(CONTROLLER_OBJ)
+	$(LD) $(LDFLAGS) $(CONTROLLER_OBJ) $(LDLIBS) -o $@
+
 .PHONY: clean
 
 clean:
-	rm -f $(OBJ) *.elf
+	rm -f $(OBJ) $(CONTROLLER_OBJ) *.elf
