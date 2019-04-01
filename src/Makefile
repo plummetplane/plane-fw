@@ -40,6 +40,8 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 # target objects
 OBJ = main.o \
       ppm-decode/ppm-readval.o \
+      drivers/misc/bmp180-common.o \
+      drivers/misc/bmp180-i2c.o \
       drivers/pwm/pwm.o \
       drivers/serial/i2c.o \
       drivers/serial/spi.o \
