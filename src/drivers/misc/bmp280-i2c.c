@@ -25,9 +25,26 @@
 
 void bmp280_i2c_read_reg(uint8_t i2c, uint8_t reg, uint8_t count, uint8_t *reg_buf);
 
+void bmp280_i2c_setup(uint8_t i2c);
+
 /* Only the I2C interface needs to be configured, but also reset the bmp */
 void bmp280_i2c_init(uint8_t i2c) {
 	i2c_init_master(i2c);
+	bmp280_i2c_setup(i2c);
+}
+
+/* setup the sesor for a reading */
+void bmp280_i2c_setup(uint8_t i2c) {
+	const uint8_t setup_seq[2] = {
+		BMP280_REG_CTRL_MEAS,
+		//0x93
+		0x33
+	};
+
+	i2c_transfer(i2c, BMP280_I2C_ADDR, setup_seq, 2, 0, 0);
+
+	for (uint16_t i = 0xffff; i > 0; i--)
+		__asm("nop");
 }
 
 /* issue reset command */

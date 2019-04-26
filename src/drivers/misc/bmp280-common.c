@@ -7,11 +7,11 @@
  * I have no idea how this works, implemented according to the datasheet
  */
 
-int32_t bmp280_t_fine(uint8_t *tmp, uint8_t *cal);
+int32_t bmp280_t_fine(uint8_t *tmp, uint16_t *cal);
 int32_t bmp280_t(int32_t t_fine);
-uint32_t bmp280_p(uint8_t *pres, uint8_t *cal, int32_t t_fine);
+uint32_t bmp280_p(uint8_t *pres, uint16_t *cal, int32_t t_fine);
 
-int32_t bmp280_t_fine(uint8_t *temp, uint8_t *cal) {
+int32_t bmp280_t_fine(uint8_t *temp, uint16_t *cal) {
 	/* assemble raw temperature from regs */
 	int32_t raw_temp = (temp[0] << 12) + (temp[1] << 4) + (temp[2] >> 4);
 
@@ -31,7 +31,7 @@ int32_t bmp280_comp_temp(uint8_t *temp, uint8_t *cal) {
 	return bmp280_t(t_fine);
 }
 
-uint32_t bmp280_p(uint8_t *pres, uint8_t *cal, int32_t t_fine) {
+uint32_t bmp280_p(uint8_t *pres, uint16_t *cal, int32_t t_fine) {
 	/* assemble raw measured \pressure from regs */
 	int32_t raw_pres = (pres[0] << 12) + (pres[1] << 4) + (pres[2] >> 4);
 
@@ -47,7 +47,7 @@ uint32_t bmp280_p(uint8_t *pres, uint8_t *cal, int32_t t_fine) {
 	if (var1 == 0)
 		return 0;
 
-	p = 10485776 - raw_pres;
+	p = 1048576 - raw_pres;
 	p = (((p << 31) - var2) * 3125) / var1;
 	var1 = ((int64_t)(cal[11]) * (p >> 13) * (p >> 13)) >> 25;
 	var2 = ((int64_t)(cal[10]) * p) >> 19;
