@@ -38,8 +38,7 @@ LDLIBS += -L../libopencm3/lib/stm32/f1/ -l$(OPENCM3_LIB)
 LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
 # target objects
-OBJ = main.o \
-      ppm-decode/ppm-readval.o \
+OBJ = ppm-decode/ppm-readval.o \
       drivers/misc/bmp280-common.o \
       drivers/misc/bmp280-i2c.o \
       drivers/pwm/pwm.o \
@@ -48,24 +47,21 @@ OBJ = main.o \
       drivers/serial/usart.o \
       drivers/wireless/nrf24l01.o
 
-CONTROLLER_OBJ = controller.o \
-		 ppm-decode/ppm-readval.o \
-		 drivers/serial/i2c.o \
-		 drivers/serial/spi.o \
-		 drivers/serial/usart.o \
-		 drivers/wireless/nrf24l01.o
+#CONTROLLER_OBJ = controller.o \
+#		 ppm-decode/ppm-readval.o \
+#		 drivers/serial/i2c.o \
+#		 drivers/serial/spi.o \
+#		 drivers/serial/usart.o \
+#		 drivers/wireless/nrf24l01.o
 
 #rules
-all: main.elf
+all: main.elf controller.elf plane.elf
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-main.elf: $(OBJ)
-	$(LD) $(LDFLAGS) $(OBJ) $(LDLIBS) -o $@
-
-controller.elf: $(CONTROLLER_OBJ)
-	$(LD) $(LDFLAGS) $(CONTROLLER_OBJ) $(LDLIBS) -o $@
+%.elf: $(OBJ) %.o
+	$(LD) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 .PHONY: clean
 
