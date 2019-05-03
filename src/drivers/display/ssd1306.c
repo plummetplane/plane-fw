@@ -44,6 +44,14 @@
 #define SSD1306_CMD_VCOMH_DESEL_LEVEL 0xdb
 #define SSD1306_CMD_NOP 0xe3
 
+uint8_t ssd1306_addr(uint8_t addr) {
+	/* i2c address */
+	addr &= 0x01;
+	addr |= 0x3c;
+
+	return addr;
+}
+
 void ssd1306_init(uint8_t i2c, uint8_t addr, uint8_t mux_rat) {
 	const uint8_t init_cmd[] = {
 		SSD1306_CMD_PWR_OFF,
@@ -64,17 +72,58 @@ void ssd1306_init(uint8_t i2c, uint8_t addr, uint8_t mux_rat) {
 		0x22,
 		SSD1306_CMD_VCOMH_DESEL_LEVEL,
 		0x30,
-		//SSD1306_CMD_DISP_RESUME,
-		SSD1306_CMD_DISP_ON,
+		SSD1306_CMD_DISP_RESUME,
+		//SSD1306_CMD_DISP_ON, /* power on the whole display - testing purposes */
 		SSD1306_CMD_NORMAL,
 		SSD1306_CMD_PWR_ON
 	};
 
 	/* i2c address */
-	addr &= 0x01;
-	addr |= 0x3c;
+	//addr &= 0x01;
+	//addr |= 0x3c;
 
 	i2c_init_master(i2c);
 
-	i2c_transfer(i2c, addr, init_cmd, sizeof(init_cmd), 0, 0);
+	i2c_transfer(i2c, ssd1306_addr(addr), init_cmd, sizeof(init_cmd), 0, 0);
+}
+
+/*
+ * transmit constructed framebuffer to the screen
+ */
+void ssd1306_transmit_buffer(uint8_t i2c, uint8_t addr, uint8_t *buf, uint16_t size) {
+	uint8_t send_framebuf[1 + size]; 
+
+	send_framebuf[0] = 0x40;
+
+	for (uint16_t i = 0; i < size; i++) {
+		send_framebuf[i + 1] = buf[i];
+	}
+
+	//addr &= 0x01;
+	//addr |= 0x3c;
+
+	i2c_transfer(i2c, ssd1306_addr(addr), send_framebuf, sizeof(send_framebuf), 0, 0);
+}
+
+/*
+ * set up column/page range to update only part of the screen
+ */
+void ssd1306_set_col_addr(uint8_t i2c, uint8_t addr, uint8_t start, uint8_t end) {
+	const uint8_t set_col_cmd[3] = {
+		SSD1306_CMD_ADDR_ADDR_COL,
+		start,
+		end
+	};
+
+	i2c_transfer(i2c, ssd1306_addr(addr), set_col_cmd, sizeof(set_col_cmd), 0, 0);
+}
+
+void ssd1306_set_page_addr(uint8_t i2c, uint8_t addr, uint8_t start, uint8_t end) {
+	const uint8_t set_page_cmd[3] = {
+		SSD1306_CMD_ADDR_PAGE,
+		start,
+		end
+	};
+
+	i2c_transfer(i2c, ssd1306_addr(addr), set_page_cmd, sizeof(set_page_cmd), 0, 0);
 }
