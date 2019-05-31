@@ -10,7 +10,7 @@
 #include "command/cmds.h"
 
 /*
- * TODO: timer to query barometric pressure and calculate avg, telemetry request handler
+ * TODO: telemetry request handler
  */
 
 #define BMP_I2C 0
@@ -73,6 +73,23 @@ static void bmp_setup(void) {
 	}
 }
 
+static void telemetry_transmit(void) {
+	nrf24l01_mode(NRF24L01_MODE_TX);
+
+	/* bit-shift - faster then division */
+	uint32_t pres = pres_sum >> 5;
+
+	nrf24l01_payload telemetry;
+
+	for (uint8_t i = 0; i < 4; i++) {
+		telemetry.data[i] = (uint8_t)((pres >> ((3 - i) * 8)) & 0xff);
+	}
+
+	telemetry.size = 4;
+
+	nrf24l01_transmit(&telemetry);
+}
+
 void servo_pwm_duty(uint8_t *ppm) {
 	pwm_set_duty(TIM4, TIM_OC4, ppm[0]);
 	pwm_set_duty(TIM4, TIM_OC3, ppm[1]);
@@ -84,7 +101,7 @@ void nrf_recv_callback(nrf24l01_payload payload) {
 			servo_pwm_duty(&payload.data[1]);
 			break;
 		case CMD_REQ_TELEMETRY:
-			/* handle telemetry */
+			telemetry_transmit();
 			break;
 	}
 }
