@@ -21,6 +21,8 @@ uint8_t pres_pos = 0;
 uint64_t pres_sum = 0;
 
 void nrf_recv_callback(nrf24l01_payload payload);
+void nrf_sent_callback(void);
+void nrf_unsucc_callback(void);
 
 static void clock_setup(void) {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
@@ -51,6 +53,8 @@ static void pwm_setup(void) {
 static void nrf24l01_setup(void) {
 	nrf24l01_init(0, GPIOB, GPIO0, NRF24L01_MODE_RX);
 	nrf24l01_rxdr_callback(&nrf_recv_callback);
+	nrf24l01_txds_callback(&nrf_sent_callback);
+	nrf24l01_maxrt_callback(&nrf_unsucc_callback);
 
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_AFIO);
@@ -104,6 +108,14 @@ void nrf_recv_callback(nrf24l01_payload payload) {
 			telemetry_transmit();
 			break;
 	}
+}
+
+void nrf_sent_callback(void) {
+	nrf24l01_mode(NRF24L01_MODE_RX);
+}
+
+void nrf_unsucc_callback(void) {
+	nrf24l01_transmit_last();
 }
 
 void tim3_isr(void) {
