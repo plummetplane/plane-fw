@@ -9,10 +9,6 @@
 
 #include "command/cmds.h"
 
-/*
- * TODO: telemetry request handler
- */
-
 #define BMP_I2C 0
 #define BMP_SAMPLE_COUNT 32
 
@@ -85,9 +81,7 @@ static void telemetry_transmit(void) {
 
 	nrf24l01_payload telemetry;
 
-	for (uint8_t i = 0; i < 4; i++) {
-		telemetry.data[i] = (uint8_t)((pres >> ((3 - i) * 8)) & 0xff);
-	}
+	*(uint32_t*)(telemetry.data) = pres;
 
 	telemetry.size = 4;
 
@@ -140,6 +134,9 @@ void exti0_isr(void) {
 
 int main(void) {
 	clock_setup();
+	bmp_setup();
+	tim_setup();
+	pwm_setup();
 	nrf24l01_setup();
 
 	while(1)
