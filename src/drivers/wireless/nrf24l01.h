@@ -52,10 +52,23 @@ int nrf24l01_transmit(nrf24l01_payload *payload);
 int nrf24l01_receive(nrf24l01_payload *payload);
 
 /*
+ * Flush TX buffer
+ */
+int nrf24l01_flush_tx(void);
+
+/*
+ * Retransmit last payload
+ */
+int nrf24l01_transmit_last(void);
+
+/*
  * setup callback functions for the irq handler
  */
 void nrf24l01_rxdr_callback(void (*callback_func)(nrf24l01_payload payload));
 void nrf24l01_txds_callback(void (*callback_func)(void));
+/*
+ * Note: when MAXRT interrupt is triggered it is a good idea to flush the TX buffer to allow the interrupt to be cleared
+ */
 void nrf24l01_maxrt_callback(void (*callback_func)(void));
 
 /*

@@ -149,6 +149,10 @@ uint8_t nrf24l01_read_status(uint8_t field);
 
 void nrf24l01_clear_status(uint8_t field);
 
+int nrf24l01_reuse_tx_pl(void);
+
+int nrf24l01_pulse_ce(void);
+
 void nrf24l01_init(uint8_t spi_dev, uint32_t gpioport, uint16_t gpios, uint8_t mode) {
 	spi_init(spi_dev, SPI_CR1_BAUDRATE_FPCLK_DIV_256, SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE, SPI_CR1_CPHA_CLK_TRANSITION_2,
 			SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
@@ -300,6 +304,52 @@ int nrf24l01_receive(nrf24l01_payload *payload) {
 	payload->size = rx_pw;
 
 	spi_deselect(spi);
+
+	return 0;
+}
+
+/*
+ * Flush TX buffer
+ */
+int nrf24l01_flush_tx(void) {
+	spi_select(spi);
+
+	spi_drv_xfer(spi, NRF24L01_CMD_FLUSH_TX);
+
+	spi_deselect(spi);
+
+	return 0;
+}
+
+/*
+ * Reuse previous TX paylaod
+ */
+int nrf24l01_reuse_tx_pl(void) {
+	spi_select(spi);
+
+	spi_drv_xfer(spi, NRF24L01_CMD_REUSE_TX_PL);
+
+	spi_deselect(spi);
+
+	return 0;
+}
+
+/*
+ * Pulse CE pin
+ */
+int nrf24l01_pulse_ce(void) {
+	gpio_set(en_gpioport, en_gpios);
+	for (uint16_t i = 720; i > 0; i--)
+		 __asm("nop");
+	gpio_clear(en_gpioport, en_gpios);
+}
+
+/*
++ * Resend last payload
++ */
+int nrf24l01_transmit_last(void) {
+	nrf24l01_reuse_tx_pl();
+	nrf24l01_pulse_ce();
 
 	return 0;
 }
